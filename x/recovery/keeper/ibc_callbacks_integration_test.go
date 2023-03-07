@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
-	coincanto := sdk.NewCoin("acanto", sdk.NewInt(10000))
+	coincanto := sdk.NewCoin("cvnt", sdk.NewInt(10000))
 	coinOsmo := sdk.NewCoin("uosmo", sdk.NewInt(10))
 	coinAtom := sdk.NewCoin("uatom", sdk.NewInt(10))
 
@@ -30,7 +30,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 
 	Describe("from a non-authorized chain", func() {
 		BeforeEach(func() {
-			// params := "acanto"
+			// params := "cvnt"
 			// params.AuthorizedChannels = []string{}
 
 			sender = s.IBCOsmosisChain.SenderAccount.GetAddress().String()
@@ -41,7 +41,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 		It("should transfer and not recover tokens", func() {
 			s.SendAndReceiveMessage(s.pathOsmosiscanto, s.IBCOsmosisChain, "uosmo", 10, sender, receiver, 1)
 
-			nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+			nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 			Expect(nativecanto).To(Equal(coincanto))
 			ibcOsmo := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), receiverAcc, uosmoIbcdenom)
 			Expect(ibcOsmo).To(Equal(sdk.NewCoin(uosmoIbcdenom, coinOsmo.Amount)))
@@ -60,7 +60,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 			It("should transfer and not recover tokens", func() {
 				s.SendAndReceiveMessage(s.pathOsmosiscanto, s.IBCOsmosisChain, "uosmo", 10, sender, receiver, 1)
 
-				nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+				nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 				Expect(nativecanto).To(Equal(coincanto))
 				ibcOsmo := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), receiverAcc, uosmoIbcdenom)
 				Expect(ibcOsmo).To(Equal(sdk.NewCoin(uosmoIbcdenom, coinOsmo.Amount)))
@@ -85,7 +85,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 				It("should not transfer or recover tokens", func() {
 					s.SendAndReceiveMessage(s.pathOsmosiscanto, s.IBCOsmosisChain, coinOsmo.Denom, coinOsmo.Amount.Int64(), sender, receiver, 1)
 
-					nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+					nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 					Expect(nativecanto).To(Equal(coincanto))
 					ibcOsmo := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), receiverAcc, uosmoIbcdenom)
 					Expect(ibcOsmo).To(Equal(sdk.NewCoin(uosmoIbcdenom, coinOsmo.Amount)))
@@ -98,24 +98,24 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 						// fmt.Println("Sender Account Numberc: ", s.IBCOsmosisChain.SenderAccount.GetAccountNumber())
 						// fmt.Println("Sender Sequence: ", s.IBCOsmosisChain.SenderAccount.GetSequence())
 
-						// acanto & ibc tokens that originated from the sender's chain
+						// cvnt & ibc tokens that originated from the sender's chain
 						s.SendAndReceiveMessage(s.pathOsmosiscanto, s.IBCOsmosisChain, coinOsmo.Denom, coinOsmo.Amount.Int64(), sender, receiver, 1)
 						timeout = uint64(s.cantoChain.GetContext().BlockTime().Add(time.Hour * 4).Add(time.Second * -20).UnixNano())
 
 						// Escrow before relaying packets
-						balanceEscrow := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), transfertypes.GetEscrowAddress("transfer", "channel-0"), "acanto")
+						balanceEscrow := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), transfertypes.GetEscrowAddress("transfer", "channel-0"), "cvnt")
 						Expect(balanceEscrow).To(Equal(coincanto))
 						ibcOsmo := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), receiverAcc, uosmoIbcdenom)
 						Expect(ibcOsmo.IsZero()).To(BeTrue())
 
 						// Relay both packets that were sent in the ibc_callback
-						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "acanto", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
+						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "cvnt", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
 						s.Require().NoError(err)
 						err = s.pathOsmosiscanto.RelayPacket(CreatePacket("10", "transfer/channel-0/uosmo", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 2, timeout))
 						s.Require().NoError(err)
 
-						// Check that the acanto were recovered
-						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+						// Check that the cvnt were recovered
+						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 						Expect(nativecanto.IsZero()).To(BeTrue())
 						ibccanto := s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), receiverAcc, acantoIbcdenom)
 						Expect(ibccanto).To(Equal(sdk.NewCoin(acantoIbcdenom, coincanto.Amount)))
@@ -147,13 +147,13 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 
 						// Relay both packets that were sent in the ibc_callback
 						timeout := uint64(s.cantoChain.GetContext().BlockTime().Add(time.Hour * 4).Add(time.Second * -20).UnixNano())
-						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "acanto", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
+						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "cvnt", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
 						s.Require().NoError(err)
 						err = s.pathOsmosiscanto.RelayPacket(CreatePacket("10", "transfer/channel-0/uosmo", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 2, timeout))
 						s.Require().NoError(err)
 
 						// Acanto was recovered from user address
-						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 						Expect(nativecanto.IsZero()).To(BeTrue())
 						ibccanto := s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), receiverAcc, acantoIbcdenom)
 						Expect(ibccanto).To(Equal(sdk.NewCoin(acantoIbcdenom, coincanto.Amount)))
@@ -176,7 +176,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 						s.Require().NoError(err)
 
 						// No further tokens recovered
-						nativecanto = s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+						nativecanto = s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 						Expect(nativecanto.IsZero()).To(BeTrue())
 						ibccanto = s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), receiverAcc, acantoIbcdenom)
 						Expect(ibccanto).To(Equal(sdk.NewCoin(acantoIbcdenom, coincanto.Amount)))
@@ -222,7 +222,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 
 						// Relay packets that were sent in the ibc_callback
 						timeout := uint64(s.cantoChain.GetContext().BlockTime().Add(time.Hour * 4).Add(time.Second * -20).UnixNano())
-						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "acanto", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
+						err := s.pathOsmosiscanto.RelayPacket(CreatePacket("10000", "cvnt", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 1, timeout))
 						s.Require().NoError(err)
 						err = s.pathOsmosiscanto.RelayPacket(CreatePacket("10", "transfer/channel-0/transfer/channel-1/uatom", sender, receiver, "transfer", "channel-0", "transfer", "channel-0", 2, timeout))
 						s.Require().NoError(err)
@@ -230,7 +230,7 @@ var _ = Describe("Recovery: Performing an IBC Transfer", Ordered, func() {
 						s.Require().NoError(err)
 
 						// Acanto was recovered from user address
-						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "acanto")
+						nativecanto := s.cantoChain.App.(*app.Canto).BankKeeper.GetBalance(s.cantoChain.GetContext(), senderAcc, "cvnt")
 						Expect(nativecanto.IsZero()).To(BeTrue())
 						ibccanto := s.IBCOsmosisChain.GetSimApp().BankKeeper.GetBalance(s.IBCOsmosisChain.GetContext(), receiverAcc, acantoIbcdenom)
 						Expect(ibccanto).To(Equal(sdk.NewCoin(acantoIbcdenom, coincanto.Amount)))

@@ -24,7 +24,7 @@ import (
 	"github.com/Canto-Network/Canto/v6/x/inflation/types"
 )
 
-var denomMint = "acanto"
+var denomMint = "cvnt"
 
 type KeeperTestSuite struct {
 	suite.Suite
